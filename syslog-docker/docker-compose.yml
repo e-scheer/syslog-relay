@@ -1,0 +1,23 @@
+# IMPORTANT: any modification requires to also be written inside the package.yaml
+
+version: '3'
+services:
+  rsyslog:
+    image: iox-syslog-relay
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "514:514/udp"
+    volumes:
+      - work:/var/lib/rsyslog
+    environment:
+      - ELASTIC_HOST=192.168.1.55
+      - ELASTIC_PORT=9200
+      - REMOTE_HOST=192.168.1.55
+      - REMOTE_PORT=10514
+      - ELASTIC_UID=elastic
+      - ELASTIC_PWD=elastic
+    restart: always
+volumes:
+  work:

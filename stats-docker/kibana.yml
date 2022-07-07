@@ -1,0 +1,7 @@
+# To allow connections from remote users, set this parameter to a non-loopback address.
+server.host: "0.0.0.0"
+# The URLs of the Elasticsearch instances to use for all your queries.
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+
+elasticsearch.username: "elastic"
+elasticsearch.password: "elastic"
