@@ -34,4 +34,4 @@ export DOCKER_API_VERSION=1.37
 
 echo | openssl s_client  -connect $DOCKER_HOST 2>/dev/null | openssl x509 -text -out $HOME/.docker/ca.pem
 
-echo -n 'username:password' | base64 - 
+echo -n 'cisco:cisco' | base64 - 

@@ -1,23 +1,35 @@
 #!/usr/bin/env bash
 
 cd "$(dirname "$0")"
-# Create a new self-signed CA certificate.
-openssl genrsa -out ca-key.pem 2048
-openssl req -new -x509 -sha256 -nodes -days 3600 -subj '/C=US/ST=LA/L=New Orleans/O=hdInternal/CN=192.168.1.55/emailAddress=admin@internal.com' -key ca-key.pem -out ca-cert.pem
 
-# Create the request and sign it with our CA certificate
-openssl req -newkey rsa:2048 -sha256 -days 3600 -nodes -subj '/C=US/ST=LA/L=New Orleans/O=hdInternal/CN=192.168.1.55/emailAddress=admin@internal.com' -keyout server-key.pem -out server-req.pem
-openssl x509 -req -in server-req.pem -days 3600 -CA ca-cert.pem -CAkey ca-key.pem -CAcreateserial -out server-cert.pem
+sudo apt-get install --no-upgrade --yes gnutls-bin
 
-# Certificate info
-openssl x509 -text -in ca-cert.pem
-openssl x509 -text -in server-cert.pem
+## CA ##
 
-while true; do
-    read -p "Do you wish to copy certificates to the docker folder [Y/n] ? " yn
-    case $yn in
-        [Yy]* ) cp ./{ca-cert.pem,server-cert.pem,server-key.pem} ../syslog-docker/certs; break;;
-        [Nn]* ) exit;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
+# Generate a private key for the CA
+sudo certtool --generate-privkey --outfile ca-key.pem
+
+# Generate the (self-signed) CA certificate
+sudo certtool --generate-self-signed --template ca.cfg --load-privkey ca-key.pem --outfile ca.pem
+
+## SERVER ##
+
+# Generate a private key for the server
+sudo certtool --generate-privkey --outfile server-key.pem --bits 2048
+
+# Generate a certificate request for the server 
+sudo certtool --generate-request --load-privkey --template server.cfg server-key.pem --outfile server-request.pem
+
+# Generate the certificate for the server and import trusted certificate authority keys into it
+sudo certtool --generate-certificate --template server.cfg --load-request server-request.pem --outfile server-cert.pem --load-ca-certificate ca.pem --load-ca-privkey ca-key.pem
+
+## CLIENT(S) ##
+
+# Generate a private key for the client (device)
+sudo certtool --generate-privkey --outfile client-key.pem --bits 2048
+
+# Generate a private key for the client (device)
+sudo certtool --generate-request --template client.cfg --load-privkey client-key.pem --outfile client-request.pem
+
+# Generate a certificate for the client and import the certificate authority certificates inside
+sudo certtool --generate-certificate --template client.cfg --load-request client-request.pem --outfile client-cert.pem --load-ca-certificate ca.pem --load-ca-privkey ca-key.pem
