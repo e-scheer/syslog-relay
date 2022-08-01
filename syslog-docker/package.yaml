@@ -1,25 +1,17 @@
-descriptor-schema-version: "2.4"
+descriptor-schema-version: "2.7"
 info:
   name: iox-syslog-relay
   description: Reliable syslog relay for IOx
-  version: "1.0"
-  author-link: http://www.cisco.com
-  author-name: Cisco Systems
+  version: latest
+  author-name: Egon Scheer <e.scheer@student.uliege.be>
 app:
   cpuarch: arm64
   env:
-    ELASTIC_HOST: 192.168.1.55
-    ELASTIC_PORT: 9200
-    ELASTIC_PWD: elastic
-    ELASTIC_UID: elastic
     PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-    REMOTE_HOST: 192.168.1.55
-    REMOTE_PORT: 10514
     TZ: UTC
   resources:
-    cpu: 100
-    disk: 10
-    memory: 32
+    cpu: "400"
+    memory: "128"
     network:
     - interface-name: eth0
       ports:
@@ -29,6 +21,5 @@ app:
   startup:
     rootfs: rootfs.tar
     target:
-    - rsyslogd
-    - -n
+    - ./start.sh
   type: docker

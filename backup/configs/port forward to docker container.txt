@@ -1,1 +1,1 @@
-ip nat inside source static udp 10.8.87.118 514 interface GigabitEthernet0/0/0 54321
+ip nat inside source static udp 10.8.87.x 514 interface GigabitEthernet0/0/0 54321

@@ -1,19 +1,37 @@
-# Load env variables if needed
+#!/usr/bin/env bash
 
-CAF_SS_ENV_FILE="/data/.env"
-if [ -f $CAF_SS_ENV_FILE ]; then
-  source $CAF_SS_ENV_FILE
+if [ ! -f "${CAF_APP_CONFIG_FILE}" ]; then
+    echo "The app configuration file is missing!"
+    exit 1
 fi
 
-if [[ -z ${CAF_APP_LOG_DIR} ]]; then
-  export CAF_APP_LOG_DIR="/tmp"
+set -a                                      # Turn on automatic export
+source <(grep = ${CAF_APP_CONFIG_FILE})     # Execute all commands in the file
+set +a                                      # Turn off automatic export
+
+# Ensures files in datadir are present
+export CA_CERT_FILE=${CAF_APP_APPDATA_DIR}"/"${CA_CERT_FILE}
+export CLIENT_CERT_FILE=${CAF_APP_APPDATA_DIR}"/"${CLIENT_CERT_FILE}
+export CLIENT_KEY_FILE=${CAF_APP_APPDATA_DIR}"/"${CLIENT_KEY_FILE}
+
+if [ ! -f "${CA_CERT_FILE}" ]; then
+    echo "The CA certificate file is missing!"
+    exit 1
+fi
+
+if [ ! -f "${CLIENT_CERT_FILE}" ]; then
+    echo "The client certificate file is missing!"
+    exit 1
+fi
+
+if [ ! -f "${CLIENT_KEY_FILE}" ]; then
+    echo "The client key file is missing!"
+    exit 1
 fi
 
 
-echo "CAF_APP_LOG_DIR = ${CAF_APP_LOG_DIR}"
-
-if [ -f /var/helloworld/helloworld ]; then
-  /var/helloworld/helloworld
-else
-  ./helloworld
+if ${DEBUG_MODE}; then
+	RSYSLOG_DEBUG_FLAG="-d"
 fi
+
+exec /usr/sbin/rsyslogd -n $RSYSLOG_DEBUG_FLAG

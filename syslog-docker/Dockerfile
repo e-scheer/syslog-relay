@@ -9,7 +9,6 @@
 FROM multiarch/qemu-user-static:aarch64 as qemu
 FROM arm64v8/alpine:latest
 
-ARG CERTS_DIR
 ARG CONFIG_FILE
 ARG EXTRA_CONFIG_FILE
 
@@ -22,6 +21,7 @@ COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin
 # See list of available package: https://pkgs.alpinelinux.org/packages?name=rsyslog*&branch=edge&arch=aarch64
 RUN	apk --no-cache update  \
 	&& apk add --no-cache --purge -uU \
+        bash \
         logrotate \
         rsyslog \
         rsyslog-tls \
@@ -30,10 +30,7 @@ RUN	apk --no-cache update  \
         tzdata \
 	&& rm -rf /var/cache/apk/* /tmp/*
 
-# Copy certificates.
-COPY ${CERTS_DIR}/* /etc/ssl/rsyslog/
-
-# Used by rsyslog when converting RFC3164 to RFC5424.
+# Used by rsyslog for RFC 3339 timestamp.
 ENV TZ=UTC
 
 # Copy rsyslog configuration files.
@@ -43,5 +40,7 @@ COPY ${EXTRA_CONFIG_FILE} /etc/rsyslog.conf.d/
 # Hold log files if the container is configured to write them (store and forward).
 VOLUME [ "/var/lib/rsyslog"]
 
-# Runs with -dn if debugging required.
-ENTRYPOINT [ "rsyslogd", "-n" ]
+# Copies the wrapper (entrypoint).
+COPY start.sh /
+
+ENTRYPOINT ["./start.sh"]

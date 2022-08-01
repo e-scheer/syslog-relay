@@ -11,13 +11,6 @@ services:
       - "514:514/udp"
     volumes:
       - work:/var/lib/rsyslog
-    environment:
-      - ELASTIC_HOST=192.168.1.55
-      - ELASTIC_PORT=9200
-      - REMOTE_HOST=192.168.1.55 # for server authentication, please ensure certificates match with hostname
-      - REMOTE_PORT=10514
-      - ELASTIC_UID=elastic
-      - ELASTIC_PWD=elastic
     restart: always
 volumes:
   work:
