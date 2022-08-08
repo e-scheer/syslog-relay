@@ -31,10 +31,10 @@ fi
 
 # Check that the allocated structures are within the resources capabilities
 #alpha=0.25
-ALPHA_MULT_INV=4 
+ALPHA_PERCENT=25
 LOG_MEM_SIZE_KB=1
 
-let "qmax = (($ALPHA_MULT_INV - 1) * (${CAF_APP_MEMORY_SIZE_KB})) / ($LOG_MEM_SIZE_KB * $ALPHA_MULT_INV) "
+let "qmax = ((100 - $ALPHA_PERCENT) * (${CAF_APP_MEMORY_SIZE_KB})) / ($LOG_MEM_SIZE_KB * 100) "
 let "qavail = $qmax - (${QUEUE_WORKER_THREADS} * ${QUEUE_DEQ_BATCH_SIZE})"
 
 if [ "$qavail" -lt "${QUEUE_SIZE}" ]; then
