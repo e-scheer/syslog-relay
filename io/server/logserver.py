@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import signal
 import threading
 import time
 import atomics
