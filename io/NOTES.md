@@ -34,10 +34,3 @@ Aim of tests:
 Type of tests:
 - lost packets (which ones)
 - packet ordering
-
-queue.type="linkedlist" # housekeeping structures are dynamically allocated
-        queue.size="50000" # the maximum size of the queue in number of messages (messages takes up 512 bytes on average (in-memory))
-        queue.discardMark="80" # threshold (%) at which rsyslog begins to discard less important messages
-        queue.discardSeverity="8" # above threshold reached, incoming as well as queued messages with a priority equal or lower than specified will be erased
-        queue.saveOnShutdown="off"
-        queue.workerThreads="1" # worker threads that can be run parallel (multiple threads imply no guarantee of order)
