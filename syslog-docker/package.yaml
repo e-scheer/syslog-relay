@@ -10,8 +10,8 @@ app:
     PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     TZ: UTC
   resources:
-    cpu: "400"
-    memory: "128"
+    cpu: 400
+    memory: 128
     network:
     - interface-name: eth0
       ports:

@@ -18,6 +18,9 @@ LABEL Description="Reliable syslog relay for IOx"
 # Copy the qemu emulator into the container.
 COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin
 
+# Add community packages (for cgroup-tools, but using it for resource control still triggers an OOM)
+# RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
+
 # See list of available package: https://pkgs.alpinelinux.org/packages?name=rsyslog*&branch=edge&arch=aarch64
 RUN	apk --no-cache update  \
 	&& apk add --no-cache --purge -uU \
