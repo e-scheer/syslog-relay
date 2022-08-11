@@ -7,4 +7,4 @@ virtualenv .venv
 
 echo -e "\n"
 echo "Run 'source .venv/bin/activate' to enter the virtual environment."
-echo "Do not forget to install required packages using 'pip install -r requirements.txt'."
+echo "Do not forget to install required packages using 'pip3 install -r requirements.txt'."

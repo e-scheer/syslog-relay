@@ -8,6 +8,7 @@ if [ ! -f "${CAF_APP_CONFIG_FILE}" ]; then
     exit 1
 fi
 
+# Might not be ideal, all variables' input should be validated.
 set -a                                      # Turn on automatic export
 source <(grep = ${CAF_APP_CONFIG_FILE})     # Execute all commands in the file
 set +a                                      # Turn off automatic export
