@@ -5,6 +5,7 @@ import signal
 import socket
 import threading
 import time
+from xmlrpc.client import boolean
 
 MSG_PRI = 1 * 8 + 6 # user-level informational message
 MSG_HOSTNAME="device"
@@ -29,7 +30,8 @@ class CancellationToken:
 
 
 class TokenBucket:
-    # Copyright https://code.activestate.com/recipes/511490-implementation-of-the-token-bucket-algorithm/
+    # Based on 'Alec Thomas' implementation:
+    # https://code.activestate.com/recipes/511490-implementation-of-the-token-bucket-algorithm/
 
     def __init__(self, tokens, fill_rate):
         """ Regulates a flow to match the rate of the bucket (not thread-safe)
@@ -63,11 +65,12 @@ class TokenBucket:
 
     tokens = property(get_tokens)
 
-def internal_counters(token, counter):
+def internal_counters(token, counter, msg_avg_size):
     while token.is_valid():
         prev_counter = counter.value
         time.sleep(1)
-        print(f"Statistics: count={counter.value}, rate={str(counter.value - prev_counter)} msg/sec")
+        delta = counter.value - prev_counter
+        print(f"Statistics: count={counter.value}, rate={str(delta)} msg/sec, throughput={round(delta * msg_avg_size / 1000000, 4)} MB/sec")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -92,6 +95,11 @@ def main():
         default=120,
         help="generation's duration in seconds (0 for infinite)")
 
+    parser.add_argument(
+        '-a', '--affix-seq',
+        action='store_true',
+        help="affix a sequence number to messages")   
+
     parser.add_argument("target", type=str)
     parser.add_argument("port", type=int)
 
@@ -101,16 +109,22 @@ def main():
 
     # build message with respect to the argument 'size' 
     message = f"<{MSG_PRI}>{timestamp} {MSG_HOSTNAME} {MSG_TAG}[{MSG_PID}]: "
+    if args['affix_seq']:
+        message += "seq: %d, "
+
     message += MSG_CHARS * int(
         max(0, (args['size'] - (len(message))))
         / len(MSG_CHARS))
-    message = message.encode()
+
+    # pre-encode if it does not requires the sequence number
+    if not args['affix_seq']:    
+        message = message.encode()
 
     token = CancellationToken()
     counter = Counter()
 
     print('Starting internal counters...')
-    bg_task = threading.Thread(name='internal-counters', target=internal_counters, args=[token, counter])
+    bg_task = threading.Thread(name='internal-counters', target=internal_counters, args=[token, counter, args['size']])
     bg_task.start()
 
     # creates a bucket to control burstiness
@@ -129,7 +143,10 @@ def main():
         while token.is_valid():
             if bucket.consume(1):
                 # least work here to maximise throughput
-                sock.sendto(message, addr)
+                if args['affix_seq']:
+                    sock.sendto((message % counter.value).encode(), addr)
+                else:
+                    sock.sendto(message, addr)
                 counter.value += 1
     except:
         token.cancel()

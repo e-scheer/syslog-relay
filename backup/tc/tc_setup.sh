@@ -1,7 +1,8 @@
 #!/bin/sh
-# Inspired from: https://linux-man.org/2021/09/24/how-to-limit-ingress-bandwith-with-tc-command-in-linux/
+# Based on 'Super Linux Man' configuration:
+# https://linux-man.org/2021/09/24/how-to-limit-ingress-bandwith-with-tc-command-in-linux/
 
-# Modify variables according to your needs
+
 UP_SPEED=30kbps
 DOWN_SPEED=500kbps
 

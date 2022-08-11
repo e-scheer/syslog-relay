@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Instructs the shell to exit if a command yields a non-zero exit status.
+set -e
+
 if [ ! -f "${CAF_APP_CONFIG_FILE}" ]; then
     echo "The app configuration file is missing!"
     exit 1
@@ -30,7 +33,7 @@ if [ ! -f "${CLIENT_KEY_FILE}" ]; then
 fi
 
 # Check that the allocated structures are within the resources capabilities
-#alpha=0.25
+# alpha=0.25
 ALPHA_PERCENT=25
 LOG_MEM_SIZE_KB=1
 
@@ -53,5 +56,7 @@ export QUEUE_DISCARD_MARK=$mark
 if ${DEBUG_MODE}; then
 	RSYSLOG_DEBUG_FLAG="-d"
 fi
+
+set +e
 
 exec /usr/sbin/rsyslogd -n $RSYSLOG_DEBUG_FLAG

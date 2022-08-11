@@ -9,4 +9,4 @@ sudo apt install syslog-ng-core
 # --interval <seconds> or -I <seconds>
 # The number of seconds loggen will run. Default value: 10
 
-loggen -i --dgram --size 256 --rate 50000 --interval 60 192.168.1.12 54321
+loggen -i --dgram --size 256 --rate 50000 --interval 60 192.168.1.15 54321
