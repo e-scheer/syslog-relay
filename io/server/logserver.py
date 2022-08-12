@@ -82,7 +82,7 @@ def internal_counters(interval_sec, token, counters, timer):
 def dump_internal_counters(counters, timer):
     msg_count = counters.msg_count.load()
     t = int(time.perf_counter()) - timer
-    print(f"Statistics: msg-count={msg_count}, impt-msg-count={counters.impt_msg_count.load()}, time={t} (sec), avg-rate={int(msg_count/t)} msg/sec")
+    print(f"Statistics: msg-count={msg_count}, impt-msg-count={counters.impt_msg_count.load()}, time={t} (sec), avg-rate={round(msg_count/t, 4)} msg/sec")
 
 def main():
     parser = argparse.ArgumentParser(
