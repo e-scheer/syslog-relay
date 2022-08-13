@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import signal
 import threading
 import time
 import atomics
@@ -8,17 +9,6 @@ from socketserver import TCPServer, ThreadingMixIn, StreamRequestHandler
 import ssl
 
 IMPT_SEQ_TAG = "impt-seq:"
-
-class CancellationToken:
-    def __init__(self):
-        self._cancelled = False
-
-    def is_valid(self):
-        return not self._cancelled
-
-    def cancel(self, *args, **kwargs):
-        print("Cancelling the token...")
-        self._cancelled = True
 
 class InternalCounters:
     def __init__(self):
@@ -69,9 +59,9 @@ class LogHandler(StreamRequestHandler):
         self.request.close()
 
 # task that runs at a fixed interval
-def internal_counters(interval_sec, token, counters, timer):
+def internal_counters(interval_sec, counters, timer):
     i = interval_sec
-    while token.is_valid():
+    while True:
         time.sleep(1)
         i -= 1
 
@@ -117,12 +107,15 @@ def main():
     timer = int(time.perf_counter())
     server = ThreadedTCPServer(counters, args['cert'].name, args['key'].name, (args['target'], args['port']), LogHandler)
 
-    token = CancellationToken()
-
     print('Starting internal counters...')
-    bg_task = threading.Thread(name='internal-counters', target=internal_counters, args=[args['stats'], token, counters, timer])
+    bg_task = threading.Thread(
+        name='internal-counters',
+        target=internal_counters,
+        daemon=True,
+        args=[args['stats'], counters, timer])
     bg_task.start()
 
+    signal.signal(signal.SIGINT, signal.default_int_handler)
     try:
         # start server 
         print(f"Listening for logs on {args['target']} port {args['port']}...")
@@ -130,9 +123,6 @@ def main():
     except KeyboardInterrupt:
         server.server_close()
         print("Server has been terminated.")
-    
-    token.cancel()
-    bg_task.join()
 
     dump_internal_counters(counters, timer)
 
