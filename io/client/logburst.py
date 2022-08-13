@@ -131,7 +131,7 @@ def main():
     # adds the sequence number (if required)
     message = f"<%d>{timestamp} {MSG_HOSTNAME} {MSG_TAG}[{MSG_PID}]: "
     if args['affix_seq']:
-        message += "seq: {0}, "
+        message += "seq: {0}, impt-seq: {0}, "
 
     # build message with respect to the argument 'size'
     message += MSG_CHARS * int(
@@ -170,19 +170,25 @@ def main():
         while token.is_valid():
             if bucket.consume(1):
                 msg = message
-    
+                is_impt = False
+
                 if args['impt_prob'] > 0:
                     if 0 <= (counter.value  % (1 / args['impt_prob'])) < 1:
                         msg = impt_message
-                        impt_counter.value += 1
+                        is_impt = True
                     else:
                         msg = message
 
                 if args['affix_seq']:
-                    msg = message.format(counter.value).encode()
+                    msg = message.format(counter.value, impt_counter.value).encode()
 
                 sock.sendto(msg, addr)
+                
                 counter.value += 1
+                if is_impt:
+                    impt_counter.value += 1
+                
+
     except:
         token.cancel()
         sock.close()

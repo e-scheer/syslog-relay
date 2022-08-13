@@ -10,6 +10,7 @@ from socketserver import TCPServer, ThreadingMixIn, StreamRequestHandler
 import ssl
 
 IMPT_SEQ_TAG = "impt-seq:"
+SEQ_TAG = "seq:"
 
 class InternalCounters:
     def __init__(self):
@@ -18,6 +19,7 @@ class InternalCounters:
 
 class ThreadedTCPServer(ThreadingMixIn, TCPServer):
     def __init__(self, counters, certfile, keyfile, *args, **kwargs):
+        self.daemon_threads = True
         self.counters = counters
         TCPServer.__init__(self, *args, **kwargs)
         self.certfile = certfile
@@ -39,7 +41,6 @@ class ThreadedTCPServer(ThreadingMixIn, TCPServer):
 
     def server_close(self):
         self.socket.close()
-        self.shutdown()
         return TCPServer.server_close(self)
 
 class LogHandler(StreamRequestHandler):
@@ -52,11 +53,8 @@ class LogHandler(StreamRequestHandler):
             # print(line)
             # counts arriving messages (do not process them)
             msg = line.decode()
-            self.counters.msg_count.inc()
-            if '\n' in msg:
-                print("WEIRDDDDD")
-            if IMPT_SEQ_TAG in msg:
-                self.counters.impt_msg_count.inc()
+            self.counters.msg_count.add(msg.count(SEQ_TAG))
+            self.counters.impt_msg_count.add(msg.count(IMPT_SEQ_TAG))
 
     def finish(self):
         self.request.close()
@@ -125,12 +123,12 @@ def main():
         print(f"Listening for logs on {args['target']} port {args['port']}...")
         server.serve_forever(poll_interval=0.5)
     except KeyboardInterrupt:
+        server.shutdown()
         server.server_close()
         print("Server has been terminated.")
 
     dump_internal_counters(counters, timer)
     print("End time: %s" % str(datetime.datetime.now()))
-    exit(0)
 
 if __name__ == "__main__":
     main()
