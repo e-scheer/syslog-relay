@@ -126,12 +126,12 @@ def main():
     timestamp = time.strftime("%b %d %H:%M:%S", time.localtime())
 
     # precomputes the priority of the message
-    MSG_IMPT_PRI = (args['impt_sev'] * 8) + 0 # kernel messages
+    MSG_IMPT_PRI = (0 * 8) + args['impt_sev'] # kernel messages
 
     # adds the sequence number (if required)
     message = f"<%d>{timestamp} {MSG_HOSTNAME} {MSG_TAG}[{MSG_PID}]: "
     if args['affix_seq']:
-        message += "seq: {0}, impt-seq: {0}, "
+        message += "seq: {0}, impt-seq: {1}, "
 
     # build message with respect to the argument 'size'
     message += MSG_CHARS * int(
@@ -181,7 +181,8 @@ def main():
 
                 if args['affix_seq']:
                     msg = msg.format(counter.value, impt_counter.value).encode()
-
+                
+                print(msg)
                 sock.sendto(msg, addr)
 
                 counter.value += 1

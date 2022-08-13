@@ -12,15 +12,18 @@ import ssl
 IMPT_SEQ_TAG = "impt-seq:"
 SEQ_TAG = "seq:"
 
+SEVERITY_MAX = 7
+
 class InternalCounters:
     def __init__(self):
         self.msg_count = atomics.atomic(width=4, atype=atomics.UINT)
         self.impt_msg_count = atomics.atomic(width=4, atype=atomics.UINT)
 
 class ThreadedTCPServer(ThreadingMixIn, TCPServer):
-    def __init__(self, counters, certfile, keyfile, *args, **kwargs):
+    def __init__(self, counters, impt_sev, certfile, keyfile, *args, **kwargs):
         self.daemon_threads = True
         self.counters = counters
+        self.impt_sev = impt_sev
         TCPServer.__init__(self, *args, **kwargs)
         self.certfile = certfile
         self.keyfile = keyfile
@@ -37,24 +40,28 @@ class ThreadedTCPServer(ThreadingMixIn, TCPServer):
 
     def finish_request(self, request, client_address):
         # forwards counters to the handler
-        self.RequestHandlerClass(self.counters, request, client_address, self)
+        self.RequestHandlerClass(self.counters, self.impt_sev, request, client_address, self)
 
     def server_close(self):
         self.socket.close()
         return TCPServer.server_close(self)
 
 class LogHandler(StreamRequestHandler):
-    def __init__(self, counters, *args, **kwargs):
+    def __init__(self, counters, impt_sev, *args, **kwargs):
         self.counters = counters
+        self.impt_sev = impt_sev
         StreamRequestHandler.__init__(self, *args, **kwargs)
 
     def handle(self):
+        # counts arriving messages (do not process them)
         for line in self.rfile:
-            # print(line)
-            # counts arriving messages (do not process them)
             msg = line.decode()
-            self.counters.msg_count.add(msg.count(SEQ_TAG))
-            self.counters.impt_msg_count.add(msg.count(IMPT_SEQ_TAG))
+            self.counters.msg_count.inc()
+
+            # isolate pri then compute severity
+            pri = msg[msg.find('<')+1:msg.find('>')]
+            if pri % 8 <= self.impt_sev:
+                self.counters.impt_msg_count.add(msg.count(IMPT_SEQ_TAG))
 
     def finish(self):
         self.request.close()
@@ -98,6 +105,13 @@ def main():
         default=10,
         help="time interval between two internal (sec) counters feeds")
 
+    parser.add_argument(
+        '--impt-sev',
+        type=int,
+        default=3,
+        choices=range(0, SEVERITY_MAX + 1),
+        help="messages with severity below or equal to this value are considered important")
+
     parser.add_argument("target", type=str, default="0.0.0.0")
     parser.add_argument("port", type=int)
 
@@ -106,7 +120,7 @@ def main():
     counters = InternalCounters()
     
     timer = int(time.perf_counter())
-    server = ThreadedTCPServer(counters, args['cert'].name, args['key'].name, (args['target'], args['port']), LogHandler)
+    server = ThreadedTCPServer(counters, args['impt_sev'], args['cert'].name, args['key'].name, (args['target'], args['port']), LogHandler)
 
     print('Starting internal counters...')
     bg_task = threading.Thread(
