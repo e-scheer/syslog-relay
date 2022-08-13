@@ -53,6 +53,8 @@ class LogHandler(StreamRequestHandler):
             # counts arriving messages (do not process them)
             msg = line.decode()
             self.counters.msg_count.inc()
+            if '\n' in msg:
+                print("WEIRDDDDD")
             if IMPT_SEQ_TAG in msg:
                 self.counters.impt_msg_count.inc()
 
@@ -128,6 +130,7 @@ def main():
 
     dump_internal_counters(counters, timer)
     print("End time: %s" % str(datetime.datetime.now()))
+    exit(0)
 
 if __name__ == "__main__":
     main()
