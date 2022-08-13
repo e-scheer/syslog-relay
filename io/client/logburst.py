@@ -180,10 +180,10 @@ def main():
                         msg = message
 
                 if args['affix_seq']:
-                    msg = message.format(counter.value, impt_counter.value).encode()
+                    msg = msg.format(counter.value, impt_counter.value).encode()
 
                 sock.sendto(msg, addr)
-                
+
                 counter.value += 1
                 if is_impt:
                     impt_counter.value += 1
