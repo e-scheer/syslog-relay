@@ -1,16 +1,29 @@
-version: '3'
+# Compose from https://levelup.gitconnected.com/docker-compose-made-easy-with-elasticsearch-and-kibana-4cb4110a80dd
+# Updated to 8.3.
+
+version: "3.0"
 services:
   elasticsearch:
-    image: elasticsearch:7.8.1
+    container_name: es-container
+    image: elasticsearch:8.3.3
+    environment:
+      - xpack.security.enabled=false
+      - "discovery.type=single-node"
+    networks:
+      - es-net
     ports:
       - 9200:9200
-    environment:
-      discovery.type: 'single-node'
-      xpack.security.enabled: 'true'
-      ELASTIC_PASSWORD: 'elastic'
   kibana:
-    image: kibana:7.8.1
-    volumes:
-      - ./kibana.yml:/usr/share/kibana/config/kibana.yml
+    container_name: kb-container
+    image: kibana:8.3.3
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es-container:9200
+    networks:
+      - es-net
+    depends_on:
+      - elasticsearch
     ports:
       - 5601:5601
+networks:
+  es-net:
+    driver: bridge

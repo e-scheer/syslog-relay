@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import datetime
 import signal
 import threading
 import time
@@ -118,6 +119,7 @@ def main():
     signal.signal(signal.SIGINT, signal.default_int_handler)
     try:
         # start server 
+        print("Start time: %s" % str(datetime.datetime.now()))
         print(f"Listening for logs on {args['target']} port {args['port']}...")
         server.serve_forever(poll_interval=0.5)
     except KeyboardInterrupt:
@@ -125,6 +127,7 @@ def main():
         print("Server has been terminated.")
 
     dump_internal_counters(counters, timer)
+    print("End time: %s" % str(datetime.datetime.now()))
 
 if __name__ == "__main__":
     main()

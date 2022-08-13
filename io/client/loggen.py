@@ -205,6 +205,7 @@ def main():
         devices.append(d)
 
     print("Starting %d device(s)..." % args['devices'])
+    print("Starting time: %s" % str(datetime.datetime.now()))
 
     # start all threads
     for t in threads:
@@ -233,6 +234,7 @@ def main():
     t = int(time.perf_counter()) - timer
     print(f"Statistics: last-seq={seq - 1}, last-impt-seq={counters.impt_seq.load()}, count={seq}, time={t} (sec), avg-rate={round(seq/t, 4)} msg/sec")
 
+    print("End time: %s" % str(datetime.datetime.now()))
     print("Closing...")
 
 if __name__ == "__main__":
