@@ -142,8 +142,8 @@ def main():
 
     # pre-encode if it does not requires the sequence number
     if not args['affix_seq']:
-        message = message.encode('ascii')
-        impt_message = impt_message.encode('ascii')
+        message = message.encode()
+        impt_message = impt_message.encode()
 
     token = CancellationToken()
     counter = Counter()
@@ -179,9 +179,8 @@ def main():
                         msg = message
 
                 if args['affix_seq']:
-                    msg = msg.format(counter.value, impt_counter.value).encode('ascii')
+                    msg = msg.format(counter.value, impt_counter.value).encode()
                 
-                print(msg)
                 sock.sendto(msg, addr)
 
                 counter.value += 1
