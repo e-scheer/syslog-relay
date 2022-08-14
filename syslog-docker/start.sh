@@ -58,6 +58,13 @@ if ${DEBUG_MODE}; then
 	RSYSLOG_DEBUG_FLAG="-d"
 fi
 
+if [ "${LOGS_TO_STDOUT}" == "on" ]; then
+	export LOGS_TO_REMOTE="off"
+else
+    export LOGS_TO_REMOTE="on"
+fi
+
+
 set +e
 
 exec /usr/sbin/rsyslogd -n $RSYSLOG_DEBUG_FLAG

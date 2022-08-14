@@ -20,10 +20,9 @@ class InternalCounters:
         self.impt_msg_count = atomics.atomic(width=4, atype=atomics.UINT)
 
 class ThreadedTCPServer(ThreadingMixIn, TCPServer):
-    def __init__(self, counters, impt_sev, certfile, keyfile, *args, **kwargs):
+    def __init__(self, params, certfile, keyfile, *args, **kwargs):
         self.daemon_threads = True
-        self.counters = counters
-        self.impt_sev = impt_sev
+        self.params = params
         TCPServer.__init__(self, *args, **kwargs)
         self.certfile = certfile
         self.keyfile = keyfile
@@ -46,22 +45,31 @@ class ThreadedTCPServer(ThreadingMixIn, TCPServer):
         self.socket.close()
         return TCPServer.server_close(self)
 
-class LogHandler(StreamRequestHandler):
-    def __init__(self, counters, impt_sev, *args, **kwargs):
+class HandlerParams:
+    def __init__(self, counters, impt_sev, file=None):
         self.counters = counters
         self.impt_sev = impt_sev
+        self.file = file
+
+class LogHandler(StreamRequestHandler):
+    def __init__(self, params, *args, **kwargs):
+        self.params = params
         StreamRequestHandler.__init__(self, *args, **kwargs)
 
     def handle(self):
         # counts arriving messages (do not process them)
         for line in self.rfile:
             msg = line.decode()
-            self.counters.msg_count.inc()
+            self.params.counters.msg_count.inc()
+
+            # stores file (might slow down if multiple threads)
+            if self.params.file:
+                self.params.file.write(msg)
 
             # isolate pri then compute severity
-            pri = msg[msg.find('<')+1:msg.find('>')]
-            if pri % 8 <= self.impt_sev:
-                self.counters.impt_msg_count.inc()
+            pri = int(msg[msg.find('<')+1:msg.find('>')])
+            if pri % 8 <= self.params.impt_sev:
+                self.params.counters.impt_msg_count.inc()
 
     def finish(self):
         self.request.close()
@@ -112,6 +120,11 @@ def main():
         choices=range(0, SEVERITY_MAX + 1),
         help="messages with severity below or equal to this value are considered important")
 
+    parser.add_argument(
+        '--store',
+        action='store_true',
+        help="store messages in a file (slows down fetching)")
+
     parser.add_argument("target", type=str, default="0.0.0.0")
     parser.add_argument("port", type=int)
 
@@ -120,7 +133,16 @@ def main():
     counters = InternalCounters()
     
     timer = int(time.perf_counter())
-    server = ThreadedTCPServer(counters, args['impt_sev'], args['cert'].name, args['key'].name, (args['target'], args['port']), LogHandler)
+    
+    if args['store']:
+        filename = str(datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S"))
+        print("Storing logs in file: " + filename)
+        file = open(f'{filename}.log','a+')
+    else:
+        file = None
+
+    params = HandlerParams(counters, args['impt_sev'], file)
+    server = ThreadedTCPServer(params, args['cert'].name, args['key'].name, (args['target'], args['port']), LogHandler)
 
     print('Starting internal counters...')
     bg_task = threading.Thread(

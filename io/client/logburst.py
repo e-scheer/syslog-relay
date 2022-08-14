@@ -6,7 +6,6 @@ import signal
 import socket
 import threading
 import time
-from xmlrpc.client import boolean
 
 FACILITY_MAX = 23
 SEVERITY_MAX = 7
@@ -182,6 +181,7 @@ def main():
                 if args['affix_seq']:
                     msg = msg.format(counter.value, impt_counter.value).encode('ascii')
                 
+                print(msg)
                 sock.sendto(msg, addr)
 
                 counter.value += 1
