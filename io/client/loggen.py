@@ -168,11 +168,11 @@ def main():
     threads = []
     devices = []
 
-    # message metrics
-    # server-like
-    #metrics = MessageMetrics(71.5, 30.2, 0.076, args['impt_sev'], 1.361, 0.001757, 0.037)
-    # linuxlogs-like
-    metrics = MessageMetrics(71.5, 30.2, 0.076, args['impt_sev'], 57, 0.001757, 0.037)
+    # MESSAGE METRICS
+    # rajiullah-server-like
+    metrics = MessageMetrics(71.5, 30.2, 0.076, args['impt_sev'], 1.361, 0.001757, 0.037)
+    # loghub-linux-like
+    #metrics = MessageMetrics(71.5, 30.2, 0.076, args['impt_sev'], 57, 0.001757, 0.037)
 
     start_date = np.datetime64('1970', 's')
     end_date = np.datetime64('2022', 's')
