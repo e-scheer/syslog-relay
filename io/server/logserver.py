@@ -61,7 +61,7 @@ class LogHandler(StreamRequestHandler):
             # isolate pri then compute severity
             pri = msg[msg.find('<')+1:msg.find('>')]
             if pri % 8 <= self.impt_sev:
-                self.counters.impt_msg_count.add(msg.count(IMPT_SEQ_TAG))
+                self.counters.impt_msg_count.inc()
 
     def finish(self):
         self.request.close()
