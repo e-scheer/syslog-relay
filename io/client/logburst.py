@@ -129,7 +129,7 @@ def main():
     MSG_IMPT_PRI = (0 * 8) + args['impt_sev'] # kernel messages
 
     # adds the sequence number (if required)
-    message = f"<%d>{timestamp} {MSG_HOSTNAME} {MSG_TAG}[{MSG_PID}]: "
+    message = f"<%d>{timestamp} {MSG_HOSTNAME} {MSG_TAG}[{MSG_PID}]:"
     if args['affix_seq']:
         message += "seq: {0}, impt-seq: {1}, "
 
@@ -143,8 +143,8 @@ def main():
 
     # pre-encode if it does not requires the sequence number
     if not args['affix_seq']:
-        message = message.encode()
-        impt_message = impt_message.encode()
+        message = message.encode('ascii')
+        impt_message = impt_message.encode('ascii')
 
     token = CancellationToken()
     counter = Counter()
@@ -180,7 +180,7 @@ def main():
                         msg = message
 
                 if args['affix_seq']:
-                    msg = msg.format(counter.value, impt_counter.value).encode()
+                    msg = msg.format(counter.value, impt_counter.value).encode('ascii')
                 
                 sock.sendto(msg, addr)
 
