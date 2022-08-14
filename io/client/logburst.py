@@ -182,7 +182,6 @@ def main():
                 if args['affix_seq']:
                     msg = msg.format(counter.value, impt_counter.value).encode()
                 
-                print(msg)
                 sock.sendto(msg, addr)
 
                 counter.value += 1
