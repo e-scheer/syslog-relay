@@ -39,7 +39,7 @@ class ThreadedTCPServer(ThreadingMixIn, TCPServer):
 
     def finish_request(self, request, client_address):
         # forwards counters to the handler
-        self.RequestHandlerClass(self.counters, self.impt_sev, request, client_address, self)
+        self.RequestHandlerClass(self.params, request, client_address, self)
 
     def server_close(self):
         self.socket.close()
