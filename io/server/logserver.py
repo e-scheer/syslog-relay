@@ -135,9 +135,9 @@ def main():
     timer = int(time.perf_counter())
     
     if args['store']:
-        filename = str(datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S"))
+        filename = f'{str(datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S"))}.log'
         print("Storing logs in file: " + filename)
-        file = open(f'{filename}.log','a+')
+        file = open(filename,'a+')
     else:
         file = None
 
