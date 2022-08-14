@@ -163,6 +163,9 @@ def main():
         server.server_close()
         print("Server has been terminated.")
 
+    if file:
+        file.close()
+        
     dump_internal_counters(counters, timer)
     print("End time: %s" % str(datetime.datetime.now()))
 
