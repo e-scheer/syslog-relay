@@ -165,7 +165,7 @@ def main():
 
     if file:
         file.close()
-        
+
     dump_internal_counters(counters, timer)
     print("End time: %s" % str(datetime.datetime.now()))
 
