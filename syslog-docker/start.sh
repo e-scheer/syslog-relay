@@ -3,6 +3,11 @@
 # Instructs the shell to exit if a command yields a non-zero exit status.
 set -e
 
+# Flush old logs
+if ${AUTO_FLUSH_LOGS}; then
+    rm ${CAF_APP_LOG_DIR}/* -f
+fi
+
 if [ ! -f "${CAF_APP_CONFIG_FILE}" ]; then
     echo "The app configuration file is missing!"
     exit 1
@@ -58,13 +63,30 @@ if ${DEBUG_MODE}; then
 	RSYSLOG_DEBUG_FLAG="-d"
 fi
 
-if [ "${LOGS_TO_STDOUT}" == "on" ]; then
-	export LOGS_TO_REMOTE="off"
-else
-    export LOGS_TO_REMOTE="on"
-fi
+export INPUT_TO_FILE_PATH="${CAF_APP_LOG_DIR}/input.log"
 
+if [ "${INPUT_TO_FILE}" == "on" ]; then
+	export INPUT_TO_REMOTE="off"
+
+else
+    export INPUT_TO_REMOTE="on"
+fi
 
 set +e
 
-exec /usr/sbin/rsyslogd -n $RSYSLOG_DEBUG_FLAG
+if ! ${USE_JSON_LOGS}; then
+    # pipe stderr and stdout to a file
+    STDOUT_LOG_PATH="${CAF_APP_LOG_DIR}/out.log"
+    touch $STDOUT_LOG_PATH
+    chmod 666 $STDOUT_LOG_PATH
+    > $STDOUT_LOG_PATH
+
+    STDERR_LOG_PATH="${CAF_APP_LOG_DIR}/err.log"
+    touch $STDERR_LOG_PATH
+    chmod 666 $STDERR_LOG_PATH
+    > $STDERR_LOG_PATH
+
+    exec /usr/sbin/rsyslogd -n $RSYSLOG_DEBUG_FLAG 2> $STDERR_LOG_PATH 1> $STDOUT_LOG_PATH
+else
+    exec /usr/sbin/rsyslogd -n $RSYSLOG_DEBUG_FLAG
+fi

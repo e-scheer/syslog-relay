@@ -1,0 +1,6 @@
+# prioritary env. variable from rsyslog engine
+#export RSYSLOG_DEBUG="debug nostdout"
+#export RSYSLOG_DEBUGLOG="${CAF_APP_LOG_DIR}/debug.log"
+
+#syslog.* action(type="omfile" file=`echo $RSYSLOG_ERRORLOG`)
+#& stop

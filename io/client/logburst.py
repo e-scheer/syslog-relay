@@ -32,6 +32,9 @@ class CancellationToken:
         print("Cancelling the token...")
         self._cancelled = True
 
+class BucketRef:
+    def __init__(self, bucket):
+        self.bucket = bucket 
 
 class TokenBucket:
     # Based on 'Alec Thomas' implementation:
@@ -76,6 +79,18 @@ def internal_counters(token, counter, impt_counter, msg_avg_size):
         delta = counter.value - prev_counter
         print(f"Statistics: count={counter.value}, impt-counter={impt_counter.value}, rate={str(delta)} msg/sec, throughput={round(delta * msg_avg_size / 1000000, 4)} MB/sec")
 
+def inc_rate_gradually(bucket_ref, interval, init_rate, n):
+    i = 0
+    rate = init_rate
+
+    while i != n:
+        bucket_ref.bucket = TokenBucket(rate, rate)
+        print(f"Gradual-rate: set rate to {rate} messages/s (next in {interval} seconds, {i}/{n})")
+
+        time.sleep(interval)
+        rate += init_rate
+        i += 1
+
 def main():
     parser = argparse.ArgumentParser(
         description='A syslog message generator.',
@@ -92,6 +107,12 @@ def main():
         type=int,
         default=5000,
         help="number of devices issuing messages")
+
+    parser.add_argument(
+        '-g', '--gradual-rate-interval',
+        type=int,
+        default=None,
+        help="interval (s) between two rate increases, to be used in combination with the --timeout to create an evolving rate")
 
     parser.add_argument(
         '-t', '--timeout',
@@ -121,7 +142,10 @@ def main():
     parser.add_argument("port", type=int)
 
     args = vars(parser.parse_args())
-    
+
+    if args['gradual_rate_interval'] and ((args['timeout'] % args['gradual_rate_interval']) != 0):
+        parser.error('the gradual-rate-interval must be an integer divisor of the timeout')
+
     timestamp = time.strftime("%b %d %H:%M:%S", time.localtime())
 
     # precomputes the priority of the message
@@ -153,8 +177,18 @@ def main():
     bg_task = threading.Thread(name='internal-counters', target=internal_counters, args=[token, counter, impt_counter, args['size']])
     bg_task.start()
 
-    # creates a bucket to control burstiness
-    bucket = TokenBucket(args['rate'], args['rate'])
+    # creates a bucket to control burstiness (inside a reference if gradual rate is required)
+    bucket_ref = BucketRef(TokenBucket(args['rate'], args['rate']))
+
+    # set the evolving rate thread
+    if args['gradual_rate_interval']:
+        gradual_steps = int(args['timeout'] / args['gradual_rate_interval'])
+        gradual_rate = int(args['rate'] / gradual_steps) # the loss of the remainder of the division is tolerable
+        bucket_ref.bucket = TokenBucket(gradual_rate, gradual_rate)
+
+        print(f'Starting gradual rate (max rate averaged to {gradual_rate*gradual_steps} messages/s)...')
+        gr_task = threading.Thread(name='inc_rate_gradually', target=inc_rate_gradually, daemon=True, args=[bucket_ref, args['gradual_rate_interval'], gradual_rate, gradual_steps])
+        gr_task.start()
 
     # set a timeout if required
     if args['timeout'] > 0:
@@ -167,7 +201,7 @@ def main():
     print("Starting time: %s" % str(datetime.datetime.now()))
     try:
         while token.is_valid():
-            if bucket.consume(1):
+            if bucket_ref.bucket.consume(1):
                 msg = message
                 is_impt = False
 

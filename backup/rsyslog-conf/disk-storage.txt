@@ -1,0 +1,9 @@
+    ## DISK ASSISTED ##
+    #queue.fileName="safqueue" # unique name prefix for spool files (store and forward queue)
+    #queue.maxDiskSpac="1G"
+    #queue.saveOnShutdown="on"
+    #queue.highWatermark="" (not in %) when the high watermark is reached, the queue will write data to disk
+    #queue.lowWatermark="" (not in %)  until the low watermark is reached, then the queue reverts back to in-memory mode
+    ##               ##
+    ## DISK ONLY ##
+    #queue.type="disk"
