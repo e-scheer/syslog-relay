@@ -196,6 +196,9 @@ def main():
         gradual_rate = int(args['rate'] / gradual_steps) # the loss of the remainder of the division is tolerable
         bucket_ref.bucket = TokenBucket(gradual_rate, gradual_rate)
 
+        args['timeout'] += args["gradual_rate_wait"] * gradual_steps
+        print(f'Increasing timeout by {args["gradual_rate_wait"] * gradual_steps} seconds to take into account the dequeue period during two rate increase')
+
         print(f'Starting gradual rate (max rate averaged to {gradual_rate*gradual_steps} messages/s)...')
         gr_task = threading.Thread(name='inc_rate_gradually', target=inc_rate_gradually, daemon=True, args=[
             bucket_ref,
