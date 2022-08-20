@@ -89,6 +89,7 @@ def inc_rate_gradually(bucket_ref, interval, init_rate, wait_dequeue, n):
 
         time.sleep(interval)
 
+        bucket_ref.bucket = TokenBucket(0, rate)
         print(f"Gradual-rate: waiting for {wait_dequeue} seconds for the queue to empty")
         time.sleep(wait_dequeue)
 
