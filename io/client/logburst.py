@@ -79,7 +79,7 @@ def internal_counters(token, counter, impt_counter, msg_avg_size):
         delta = counter.value - prev_counter
         print(f"Statistics: count={counter.value}, impt-counter={impt_counter.value}, rate={str(delta)} msg/sec, throughput={round(delta * msg_avg_size / 1000000, 4)} MB/sec")
 
-def inc_rate_gradually(bucket_ref, interval, init_rate, n):
+def inc_rate_gradually(bucket_ref, interval, init_rate, wait_dequeue, n):
     i = 0
     rate = init_rate
 
@@ -88,6 +88,10 @@ def inc_rate_gradually(bucket_ref, interval, init_rate, n):
         print(f"Gradual-rate: set rate to {rate} messages/s (next in {interval} seconds, {i}/{n})")
 
         time.sleep(interval)
+
+        print(f"Gradual-rate: waiting for {wait_dequeue} seconds for the queue to empty")
+        time.sleep(wait_dequeue)
+
         rate += init_rate
         i += 1
 
@@ -113,6 +117,12 @@ def main():
         type=int,
         default=None,
         help="interval (s) between two rate increases, to be used in combination with the --timeout to create an evolving rate")
+
+    parser.add_argument(
+        '--gradual-rate-wait',
+        type=int,
+        default=30,
+        help="waiting time to allow the queue to empty between two rate increases")
 
     parser.add_argument(
         '-t', '--timeout',
@@ -187,7 +197,13 @@ def main():
         bucket_ref.bucket = TokenBucket(gradual_rate, gradual_rate)
 
         print(f'Starting gradual rate (max rate averaged to {gradual_rate*gradual_steps} messages/s)...')
-        gr_task = threading.Thread(name='inc_rate_gradually', target=inc_rate_gradually, daemon=True, args=[bucket_ref, args['gradual_rate_interval'], gradual_rate, gradual_steps])
+        gr_task = threading.Thread(name='inc_rate_gradually', target=inc_rate_gradually, daemon=True, args=[
+            bucket_ref,
+            args['gradual_rate_interval'],
+            gradual_rate,
+            args['gradual_rate_wait'],
+            gradual_steps])
+
         gr_task.start()
 
     # set a timeout if required
