@@ -1,1 +1,0 @@
-curl -X DELETE 'http://localhost:9200/_all' -u elastic:elastic
