@@ -1,1 +1,0 @@
-- Check si pc en local sur le routeur peut envoyer des logs sur 514 (usb ubuntu)

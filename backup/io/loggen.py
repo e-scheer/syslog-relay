@@ -1,1 +1,0 @@
-#https://github.com/ofosos/logload/blob/master/logload/logload.py
