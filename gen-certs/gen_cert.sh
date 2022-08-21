@@ -37,4 +37,4 @@ sudo certtool --generate-request --template client.cfg --load-privkey client-key
 # Generate a certificate for the client and import the certificate authority certificates inside
 sudo certtool --generate-certificate --template client.cfg --load-request client-request.pem --outfile client-cert.pem --load-ca-certificate ca-cert.pem --load-ca-privkey ca-key.pem
 
-sudo chmod -R 755 .
+find . -name "*.pem" -exec chmod 666 {} \;

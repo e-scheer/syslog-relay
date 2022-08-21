@@ -35,4 +35,5 @@ It is also possible to launch the Elasticsearch-Kibana service locally from the 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
-Distributed under the [MIT](https://choosealicense.com/licenses/mit/) License.
+Distributed under the [GPLv3](https://choosealicense.com/licenses/gpl-3.0/) License.
+If you intend to use it inside non-GPLv3 compatible project, please read [this](https://www.rsyslog.com/doc/v8-stable/licensing.html) very carefully.

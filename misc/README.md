@@ -19,6 +19,8 @@ I recommend the use of this testflow to avoid any problem or misunderstanding.
 
 ### Fields inside Kibana
 
+The dashboard configuration (provided that the names used in the rsyslog configuration do not change) used for the testbed is available [here](misc/testbed/kibana-dashboard.ndjson). The import is very simple and explained in Kibana's [documentation](https://www.elastic.co/guide/en/kibana/current/managing-saved-objects.html).
+
 List of fields available inside Kibana (if the statistics module is enabled).
 Please first isolate the data.name of interest (main queue, forwarding action ...) as fields attributes collide.
 
